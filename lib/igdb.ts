@@ -100,3 +100,33 @@ export async function searchGames(query: string, limit = 8): Promise<Game[]> {
     coverUrl: coverUrl(row.cover?.image_id),
   }));
 }
+
+/**
+ * Run one search per query, pacing request starts to stay under IGDB's
+ * 4-requests-per-second limit. A failed search yields an empty array for
+ * that query rather than failing the whole batch.
+ */
+export async function bulkSearchGames(
+  queries: string[],
+  limitPerQuery = 5,
+): Promise<Game[][]> {
+  const START_GAP_MS = 280;
+  let nextStart = Date.now();
+
+  return Promise.all(
+    queries.map(async (query) => {
+      const wait = nextStart - Date.now();
+      nextStart = Math.max(nextStart, Date.now()) + START_GAP_MS;
+      if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+      if (query.trim().length < 2) return [];
+      try {
+        return await searchGames(query, limitPerQuery);
+      } catch (err) {
+        // Config errors affect every query equally; surface those.
+        if (err instanceof IgdbConfigError) throw err;
+        console.error(`IGDB bulk search failed for "${query}":`, err);
+        return [];
+      }
+    }),
+  );
+}

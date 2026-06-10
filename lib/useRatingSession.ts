@@ -55,6 +55,20 @@ export function useRatingSession() {
     );
   }, []);
 
+  /** Add several games at once, skipping ids already drafted or repeated in the batch. */
+  const addGames = useCallback((games: Game[]) => {
+    setState((s) => {
+      const seen = new Set(s.draft.map((g) => g.id));
+      const fresh: Game[] = [];
+      for (const game of games) {
+        if (seen.has(game.id)) continue;
+        seen.add(game.id);
+        fresh.push(game);
+      }
+      return fresh.length ? { ...s, draft: [...s.draft, ...fresh] } : s;
+    });
+  }, []);
+
   const removeGame = useCallback((id: number) => {
     setState((s) => ({ ...s, draft: s.draft.filter((g) => g.id !== id) }));
   }, []);
@@ -82,14 +96,19 @@ export function useRatingSession() {
 
   const reset = useCallback(() => setState(EMPTY), []);
 
+  /** Replace the whole session, e.g. from an imported save file. */
+  const importState = useCallback((next: SessionState) => setState(next), []);
+
   return {
     state,
     hydrated,
     addGame,
+    addGames,
     removeGame,
     startMatches,
     recordWinner,
     reset,
+    importState,
   };
 }
 
