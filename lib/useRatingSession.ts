@@ -94,6 +94,22 @@ export function useRatingSession() {
     });
   }, []);
 
+  /** Push an unplayed match to the end of the queue without declaring a winner. */
+  const deferMatch = useCallback((matchIndex: number) => {
+    setState((s) => {
+      if (s.winners[matchIndex] !== null) return s;
+      // Already last — nothing to move.
+      if (matchIndex === s.matches.length - 1) return s;
+      const matches = s.matches.slice();
+      const winners = s.winners.slice();
+      const [match] = matches.splice(matchIndex, 1);
+      const [winner] = winners.splice(matchIndex, 1);
+      matches.push(match);
+      winners.push(winner);
+      return { ...s, matches, winners };
+    });
+  }, []);
+
   const reset = useCallback(() => setState(EMPTY), []);
 
   /** Replace the whole session, e.g. from an imported save file. */
@@ -107,6 +123,7 @@ export function useRatingSession() {
     removeGame,
     startMatches,
     recordWinner,
+    deferMatch,
     reset,
     importState,
   };

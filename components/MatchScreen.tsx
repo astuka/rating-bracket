@@ -9,9 +9,16 @@ interface Props {
   matches: Match[];
   winners: (number | null)[];
   onPick: (matchIndex: number, winnerId: number) => void;
+  onDefer: (matchIndex: number) => void;
 }
 
-export default function MatchScreen({ games, matches, winners, onPick }: Props) {
+export default function MatchScreen({
+  games,
+  matches,
+  winners,
+  onPick,
+  onDefer,
+}: Props) {
   // The current match is the first one without a recorded winner.
   const current = useMemo(
     () => winners.findIndex((w) => w === null),
@@ -61,6 +68,16 @@ export default function MatchScreen({ games, matches, winners, onPick }: Props) 
           interactive
           onClick={() => onPick(current, b.id)}
         />
+      </div>
+
+      <div className="mt-6 flex justify-center">
+        <button
+          type="button"
+          onClick={() => onDefer(current)}
+          className="rounded-full border border-white/15 px-5 py-2 text-sm text-white/60 transition-colors hover:border-white/30 hover:text-white"
+        >
+          Defer — decide later
+        </button>
       </div>
     </div>
   );

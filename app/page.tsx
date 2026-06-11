@@ -18,6 +18,7 @@ export default function Home() {
     removeGame,
     startMatches,
     recordWinner,
+    deferMatch,
     reset,
     importState,
   } = useRatingSession();
@@ -64,6 +65,7 @@ export default function Home() {
           matches={state.matches}
           winners={state.winners}
           onPick={recordWinner}
+          onDefer={deferMatch}
         />
       ) : (
         <Results
